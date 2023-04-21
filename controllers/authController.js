@@ -5,6 +5,8 @@ const {
 } = require("../middleware/token");
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 exports.register = async (req, res) => {
   try {
@@ -19,7 +21,7 @@ exports.register = async (req, res) => {
         msg: "This email has been taken",
       });
     //hash the password using bcrypt
-    const hashedPassword = await bycrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 12);
     //create new user
     const user = new User({
       email,
@@ -111,8 +113,68 @@ exports.resetPassword = (req, res) => {
     port: 465,
     secure: true,
     auth: {
-      user: "",
-      pass: "",
+      user: process.env.USER,
+      pass: process.env.PASSWORD,
     },
+    tls: { rejectUnauthorized: false },
   });
+
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) res.status(400).json({ msg: "token is invalid" });
+
+    const token = buffer.toString("hex");
+    User.findOne({ email: req.body.email }).then((user) => {
+      if (!user)
+        return res
+          .status(422)
+          .json({ msg: "User does not exist with this email" });
+
+      user.resetToken = token;
+      user.expireToken = Date.now() + 3600000;
+
+      user.save().then((result) => {
+        smtpTransport.sendMail({
+          to: user.email,
+          from: "softwaretest94@gmail.com",
+          subject: "Reset Password",
+          html: `
+                <h4>You requested for a password Reset</h4>
+                <h5>Click on this <a href="${process.env.RESET}/reset/${token}">link</a> to reset your password </h5>
+                `,
+        });
+        res.json({ msg: "Check your email" });
+      });
+    });
+  });
+};
+
+exports.newPassword = (req, res) => {
+  const newPassword = req.body.password;
+  const sentToken = req.body.token;
+
+  User.findOne({
+    resetToken: sentToken,
+    expireToken: {
+      $gt: Date.now(),
+    },
+  })
+    .then((user) => {
+      if (!user)
+        return res.status(422).json({ msg: "User does not exist this email" });
+
+      //hash password
+      bcrypt.hash(newPassword, 12).then((hashedPassword) => {
+        user.password == hashedPassword;
+        user.resetToken = undefined;
+        user.expireToken = undefined;
+        user.save().then((savedUser) => {
+          res.json({
+            msg: "Password Reset successful. Login with your new password!",
+          });
+        });
+      });
+    })
+    .catch((err) => {
+      return res.status(500).json({ msg: "Something went wrong!" });
+    });
 };
