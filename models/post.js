@@ -15,8 +15,13 @@ const postSchema = new Schema(
       type: String,
       required: true,
     },
+    pic: {
+      type: String,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("user", postSchema);
+const Post = mongoose.model("Post", postSchema);
+module.exports = Post;
