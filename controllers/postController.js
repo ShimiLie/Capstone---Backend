@@ -11,6 +11,7 @@ exports.createPost = async (req, res) => {
     title,
     body,
     photo: pic,
+    postedBy: req.user,
   });
   post
     .save()
@@ -24,12 +25,31 @@ exports.createPost = async (req, res) => {
 
 exports.getAllPosts = async (req, res) => {
   await Post.find({})
-    .populate("_id name pic")
+    .populate("postedBy", "_id name pic")
     .sort("-createdAt")
     .then((posts) => {
       res.status(200).json({ posts });
     })
     .catch((err) => {
       res.status(500).json({ msg: err.message });
+    });
+};
+
+exports.deletePost = async (req, res) => {
+  await Post.findByIdAndUpdate({ _id: req.param.postId })
+    .populate("postedBy", "_id")
+    .exec((err, post) => {
+      if (err) return res.status(400).json({ msg: err });
+
+      if (post.postedBy._id.toString() === req.user._id.toString()) {
+        post
+          .remove()
+          .then((result) => {
+            res.json({ msg: "Deleted Post", result });
+          })
+          .catch((err) => {
+            return res.status(500).json({ msg: err.message });
+          });
+      }
     });
 };

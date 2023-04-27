@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const { ObjectId } = mongoose.Schema.Types;
 
 const userSchema = new Schema(
   {
@@ -17,6 +18,7 @@ const userSchema = new Schema(
     },
     pic: {
       type: String,
+      default: "https://example.com/cute-pusheen.jpg",
     },
     resetToken: String,
     expireToken: String,

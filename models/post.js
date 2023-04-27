@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
-const postSchema = new Schema(
+const postSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -14,6 +14,10 @@ const postSchema = new Schema(
     photo: {
       type: String,
       required: true,
+    },
+    postedBy: {
+      type: ObjectId,
+      ref: "User",
     },
     pic: {
       type: String,

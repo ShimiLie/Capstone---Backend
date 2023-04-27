@@ -7,6 +7,6 @@ exports.createAccessToken = (payload) => {
 };
 exports.createRefreshToken = (payload) => {
   return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "20",
+    expiresIn: "30d",
   });
 };

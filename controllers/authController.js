@@ -20,8 +20,10 @@ exports.register = async (req, res) => {
       return res.status(400).json({
         msg: "This email has been taken",
       });
+
     //hash the password using bcrypt
     const hashedPassword = await bcrypt.hash(password, 12);
+
     //create new user
     const user = new User({
       email,
@@ -34,7 +36,7 @@ exports.register = async (req, res) => {
       msg: "Registered Successfully",
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(500).json({
       msg: error.message,
     });
   }
@@ -42,7 +44,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
     if (!email || !password) {
       return res.status(422).json({ msg: "Please input all fields" });
     }
@@ -127,7 +129,7 @@ exports.resetPassword = (req, res) => {
       if (!user)
         return res
           .status(422)
-          .json({ msg: "User does not exist with this email" });
+          .json({ status: "User does not exist with this email" });
 
       user.resetToken = token;
       user.expireToken = Date.now() + 3600000;
@@ -139,7 +141,7 @@ exports.resetPassword = (req, res) => {
           subject: "Reset Password",
           html: `
                 <h4>You requested for a password Reset</h4>
-                <h5>Click on this <a href="${process.env.RESET}/reset/${token}">link</a> to reset your password </h5>
+                <h5>Click on this <a href="${process.env.RESET}/reset-password/${token}">link</a> to reset your password </h5>
                 `,
         });
         res.json({ msg: "Check your email" });

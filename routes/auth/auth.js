@@ -4,6 +4,7 @@ const {
   login,
   resetPassword,
   newPassword,
+  refreshToken,
 } = require("../../controllers/authController");
 const authRouter = express.Router();
 
@@ -12,7 +13,7 @@ authRouter.post("/signin", login); //add signinController
 authRouter.post("/reset-password", resetPassword);
 authRouter.post("/new-password", newPassword);
 
-authRouter.post("/refresh-token");
-authRouter.get("/logout", (req, res) => {});
+authRouter.post("/refresh_token", refreshToken);
+// authRouter.get("/logout", (req, res) => {});
 
 module.exports = authRouter;
